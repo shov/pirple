@@ -1,5 +1,5 @@
 .vscode
 .idea
-.DB_Store
+.DS_Store
 **/ssl/*
-
+*.zip
