@@ -12,6 +12,10 @@ const config = require('./config');
 const routes = require('./routes');
 const frontController = new FrontController(routes);
 
+const FileDataStorage = require('./lib/FileDataStorage');
+const storage = new FileDataStorage()
+storage.usePartition('tests');
+
 //HTTP Server
 http
     .createServer(frontController.getHandler())
