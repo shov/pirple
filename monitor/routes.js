@@ -26,7 +26,11 @@ routes.setHandler('users', (() => {
                 cb(code, payload);
             })
             .catch(err => {
-                cb(500, { message: err.toString(), stack: err.stack });
+                if (err instanceof TypeError) {
+                    cb(422, { message: err.toString() });
+                } else {
+                    cb(500, { message: err.toString(), stack: err.stack });
+                }
             });
     };
 })());
