@@ -5,7 +5,7 @@
 const Router = require('./lib/Router');
 const routes = new Router();
 
-routes.setHandler('users', (data, cb) => {
+routes.setHandler('users', (() => {
     const controller = require('./http/usersController');
     const actions = {
         get: controller.get.bind(controller),
@@ -14,18 +14,22 @@ routes.setHandler('users', (data, cb) => {
         delete: controller.delete.bind(controller),
     };
 
-    if (!data.method in actions) {
-        cb(405);
-    }
+    //Handler
+    return (data, cb) => {
 
-    actions[data.method](data)
-        .then(({ code, payload }) => {
-            cb(code, payload);
-        })
-        .catch(err => {
-            cb(500, { message, stack } = err);
-        });
-})
+        if (!data.method in actions) {
+            cb(405);
+        }
+
+        actions[data.method](data)
+            .then(({ code, payload }) => {
+                cb(code, payload);
+            })
+            .catch(err => {
+                cb(500, { message: err.toString(), stack: err.stack });
+            });
+    };
+})());
 
 routes.setHandler('ping', (data, cb) => {
     cb(200);

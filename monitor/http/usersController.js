@@ -1,5 +1,6 @@
 const Validator = require('../lib/Validator');
 const FileDataStorage = require('../lib/FileDataStorage');
+const helpers = require('../lib/helpers');
 
 class UsersController {
     constructor() {
@@ -18,17 +19,23 @@ class UsersController {
         if (
             !Validator.nonEmptyString(payload.firstName)
             || !Validator.nonEmptyString(payload.lastName)
-            || !(Validator.nonEmptyString(payload.phone) && payload.phone.trim().length === 10)
+            || !Validator.nonEmptyString(payload.phone
+            ||  payload.phone.trim().length < 10)
             || !Validator.nonEmptyString(payload.password)
-            || !(payload.tosAgreement === true)
+            || payload.tosAgreement !== true
         ) {
             throw new Error(`Wrong payload!`)
         }
 
-        const { firstName, lastName, phone, passwordHash, tosAgreement } = payload
+        const { firstName, lastName, phone, password, tosAgreement } = payload
+
+        const passwordHash = helpers.hash(password);
+        if(!passwordHash) {
+            throw new Error(`Can't create password hash!`)
+        }
 
         try {
-            this._storage.read(phone);
+            await this._storage.read(phone);
             return {
                 code: 404, payload: { error: 'User with this phone already exists' }
             };
@@ -55,4 +62,4 @@ class UsersController {
 
 };
 
-module.export = new UsersController();
+module.exports = new UsersController();

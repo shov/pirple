@@ -1,6 +1,6 @@
 class Validator {
     static nonEmptyString(str) {
-        return !(!'string' === typeof str || str.trim().length < 1);
+        return 'string' === typeof str && str.trim().length > 0;
     };
 
     static object(obj) {
