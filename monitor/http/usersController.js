@@ -75,14 +75,72 @@ class UsersController {
      * @param {RequestDataInterface} data 
      */
     async update(data) {
+        if (!Validator.nonEmptyString(data.payload)) {
+            throw new TypeError(`Wrong payload!`);
+        }
+        const payload = JSON.parse(data.payload);
 
+        if (!Validator.nonEmptyString(payload.phone) && !Validator.nonEmptyString(payload.phone.trim())) {
+            throw new TypeError(`Phone is required`);
+        }
+
+        const haveSomeToUpdate =
+            Validator.nonEmptyString(payload.firstName)
+            || Validator.nonEmptyString(payload.lastName)
+            || Validator.nonEmptyString(payload.password);
+
+        if (!haveSomeToUpdate) {
+            throw new TypeError(`Nothing to update`);
+        }
+
+        const phone = payload.phone.trim();
+        const {firstName, lastName, password } = payload;
+
+        let dto;
+        try {
+            dto = await this._storage.read(phone);
+        } catch (e) {
+            return { code: 404 };
+        }
+
+        if (firstName) {
+            dto.firstName = firstName;
+        }
+
+        if (lastName) {
+            dto.lastName = lastName;
+        }
+
+        if (password) {
+            dto.passwordHash = helpers.hash(password);
+        }
+
+        try {
+            await this._storage.update(phone, dto);
+        } catch (e) {
+            console.error(e, e.stack);
+            throw Error(`Cannot update the user`);
+        }
+
+        return { code: 204 };
     };
 
     /**
      * @param {RequestDataInterface} data 
      */
     async delete(data) {
+        if (!Validator.nonEmptyString(data.query.phone)) {
+            throw new TypeError(`Wrong payload!`);
+        }
 
+        const phone = data.query.phone.trim();
+
+        try {
+            await this._storage.delete(phone);
+        } catch (e) {
+            return { code: 404 };
+        }
+        return { code: 204 };
     };
 
 };
