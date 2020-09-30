@@ -16,6 +16,10 @@ module.exports = class AuthService {
      * @return {Promise<boolean>}
      */
     async verify(phone, tockenId) {
+        if(!tockenId) {
+            return false;
+        }
+        
         try {
             const dto = await this._storage.read(tockenId);
             return dto.phone === phone && parseInt(dto.expires) > +new Date();

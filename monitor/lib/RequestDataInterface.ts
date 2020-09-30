@@ -3,4 +3,5 @@ interface RequestDataInterface {
     method: string,
     query: object,
     payload: string,
+    headers: {string: string},
 };

@@ -134,6 +134,20 @@ class FileDataStorage {
 
     };
 
+    async removeRelated(relatedPartition, field, value) {
+        const relatedStorage = new this.constructor().usePartition(relatedPartition);
+        const listToRemove = await relatedStorage.fetchAllIdsBy(field, value);
+        await Promise.all(listToRemove.map(id => {
+            return (async () => {
+                await relatedStorage.delete(id);
+            })();
+        }))
+    }
+
+    async fetchAllIdsBy(field, value) {
+        //TODO
+    }
+
     _getPartitionDirPath() {
         if (!this._partition) {
             throw new Error(`Set partition first!`);

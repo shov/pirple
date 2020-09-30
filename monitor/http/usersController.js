@@ -1,10 +1,12 @@
 const Validator = require('../lib/Validator');
 const FileDataStorage = require('../lib/FileDataStorage');
 const helpers = require('../lib/helpers');
+const AuthService = require('../lib/AuthService');
 
 class UsersController {
     constructor() {
         this._storage = new FileDataStorage().usePartition('users');
+        this._auth = new AuthService();
     }
 
     /**
@@ -56,8 +58,14 @@ class UsersController {
             throw new TypeError(`Wrong payload!`);
         }
 
+        const phone = data.query.phone.trim();
+        const tokenId = Validator.nonEmptyString(data.headers.authorization) ? data.headers.authorization.trim() : false;
+        if(!await this._auth.verify(phone, tokenId)) {
+            return {code: 403};
+        }
+
         try {
-            const dto = await this._storage.read(data.query.phone);
+            const dto = await this._storage.read(phone);
 
             if (!dto) {
                 return { code: 500, error: "Unexpected data" };
@@ -94,6 +102,12 @@ class UsersController {
         }
 
         const phone = payload.phone.trim();
+        const tokenId = Validator.nonEmptyString(data.headers.authorization) ? data.headers.authorization.trim() : false;
+        if(!await this._auth.verify(phone, tokenId)) {
+            return {code: 403};
+        }
+
+
         const {firstName, lastName, password } = payload;
 
         let dto;
@@ -134,6 +148,10 @@ class UsersController {
         }
 
         const phone = data.query.phone.trim();
+        const tokenId = Validator.nonEmptyString(data.headers.authorization) ? data.headers.authorization.trim() : false;
+        if(!await this._auth.verify(phone, tokenId)) {
+            return {code: 403};
+        }
 
         try {
             await this._storage.delete(phone);

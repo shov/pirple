@@ -35,6 +35,7 @@ class FrontController {
                     method,
                     query: this._prepareQueryObject(query),
                     payload: buffer,
+                    headers: req.headers,
                 }, (code, payload) => {
                     const statusCode = typeof code === 'number' ? code : 200;
                     const payloadString = JSON.stringify(typeof payload === 'object' ? payload : {});
