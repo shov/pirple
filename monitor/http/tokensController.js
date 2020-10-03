@@ -1,11 +1,13 @@
 const Validator = require('../lib/Validator');
 const FileDataStorage = require('../lib/FileDataStorage');
 const helpers = require('../lib/helpers');
+const TokenService = require('../app/TokensService');
 
 class TokensController {
     constructor() {
         this._storage = new FileDataStorage().usePartition('tokens');
         this._userStorage = new FileDataStorage().usePartition('users');
+        this._tokenService = new TokenService();
     }
 
     /**
@@ -45,10 +47,8 @@ class TokensController {
                 expires: +new Date() + 1000 * 60 * 60,
             };
 
-            await this._storage.create(tokenId, tokenDto);
-
-            return {code: 201, payload: tokenDto};
-
+            const wasCreated = await this._tokenService.create(tokenId, tokenDto);
+            return wasCreated ? {code: 201, payload: tokenDto} : {code: 500, payload: {error: `Can't create token!`}};
         } catch (e) {
             return { code: 404, payload: { error: `User not found` } };
         }
@@ -123,12 +123,8 @@ class TokensController {
             throw new TypeError(`Wrong payload!`);
         }
 
-        try {
-            await this._storage.delete(data.query.id.trim());
-        } catch (e) {
-            return { code: 404 };
-        }
-        return { code: 204 };
+        const wasDeleted = await this._tokenService.delete(data.query.id.trim());
+        return wasDeleted ? { code: 204 } : { code: 404 };
     };
 
 };

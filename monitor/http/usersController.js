@@ -2,11 +2,13 @@ const Validator = require('../lib/Validator');
 const FileDataStorage = require('../lib/FileDataStorage');
 const helpers = require('../lib/helpers');
 const AuthService = require('../lib/AuthService');
+const UserService = require('../app/UsersService');
 
 class UsersController {
     constructor() {
         this._storage = new FileDataStorage().usePartition('users');
         this._auth = new AuthService();
+        this._userService = new UserService();
     }
 
     /**
@@ -44,7 +46,7 @@ class UsersController {
 
         } catch (e) {
             await this._storage.create(payload.phone, {
-                firstName, lastName, phone, passwordHash, tosAgreement,
+                firstName, lastName, phone, passwordHash, tosAgreement, tokens: [],
             });
             return { code: 201, payload: { phone } };
         }
@@ -70,7 +72,7 @@ class UsersController {
             if (!dto) {
                 return { code: 500, error: "Unexpected data" };
             }
-
+            delete dto.tokens;
             delete dto.passwordHash;
             return { code: 200, payload: dto };
 
@@ -153,12 +155,8 @@ class UsersController {
             return {code: 403};
         }
 
-        try {
-            await this._storage.delete(phone);
-        } catch (e) {
-            return { code: 404 };
-        }
-        return { code: 204 };
+        const wasDeleted = await this._userService.delete(phone);
+        return wasDeleted ? { code: 204 } : { code: 404 };
     };
 
 };

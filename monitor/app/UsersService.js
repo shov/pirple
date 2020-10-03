@@ -6,8 +6,7 @@ const FileDataStorage = require('../lib/FileDataStorage');
 
 class UsersService {
     constructor() {
-        this._usersStorage = new FileDataStorage().usePartition('users');
-        this._tokensStorage = new FileDataStorage().usePartition('tokens');
+        this._storage = new FileDataStorage().usePartition('users');
     }
 
     /**
@@ -15,19 +14,21 @@ class UsersService {
      * @param {string} phone 
      */
     async delete(phone) {
-        //Delete the user
         try {
-            await this._usersStorage.delete(phone);
+            try {
+                //Clean up related tokens
+                await this._storage.deleteOwned(phone, 'tokens', 'tokens');
+            } catch (e) {
+                console.error(`Cannot remove user's tokens!`, e, e.stack);
+                throw e;
+            }
+
+            //Delete the user
+            await this._storage.delete(phone);
+            
         } catch (e) {
             return false;
         }
-
-        //Clean up related tokens
-        this._tokensStorage.removeRelated('users', 'phone', phone)
-            .catch(e => {
-                console.error(`Cannot remove user's tokens!`, e, e.stack);
-            })
-
         return true;
     }
 };

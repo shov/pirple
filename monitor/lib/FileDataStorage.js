@@ -134,18 +134,79 @@ class FileDataStorage {
 
     };
 
-    async removeRelated(relatedPartition, field, value) {
+    async deleteOwned(id, relatedPartition, ownedField) {
         const relatedStorage = new this.constructor().usePartition(relatedPartition);
-        const listToRemove = await relatedStorage.fetchAllIdsBy(field, value);
-        await Promise.all(listToRemove.map(id => {
-            return (async () => {
-                await relatedStorage.delete(id);
-            })();
-        }))
+        try {
+            const dto = await this.read(id);
+            const listToRemove = dto[ownedField]
+            if (!Array.isArray(listToRemove)) {
+                throw new Error(`Related filed is not an array of ids`);
+            }
+
+            await Promise.all(listToRemove.map(rId => {
+                return (async () => {
+                    try {
+                        await relatedStorage.delete(rId);
+                    } catch (e) {
+                        console.error(`Cannot delete owned record ${this._partition}.${ownedField} -> ${relatedPartition}[${rId}]`)
+                    }
+                })();
+            }));
+        } catch (e) {
+            console.error(e, e.stack)
+            throw new Error(`Can't remove owned! ${this._partition}.${ownedField} -> ${relatedPartition}`);
+        }
+    };
+
+    async deleteFromOwner(id, ownerIdField, relatedPartition, ownedField) {
+        const relatedStorage = new this.constructor().usePartition(relatedPartition);
+        try {
+            const ownedDto = await this.read(id);
+            const ownerId = ownedDto[ownerIdField];
+
+            const ownerDto = await relatedStorage.read(ownerId);
+            let listOfOwned = ownerDto[ownedField]
+            if (!Array.isArray(listOfOwned)) {
+                throw new Error(`Related filed is not an array of ids`);
+            }
+
+            if(!listOfOwned.includes(id)) {
+                console.warn(`Owner has no relation where ${relatedPartition}.${ownedField} -> ${this._partition}[${id}]`)
+                return;
+            }
+
+            listOfOwned = listOfOwned.filter(rId => rId !== id);
+
+            ownerDto[ownedField] = listOfOwned;
+
+            await relatedStorage.update(ownerId, ownerDto);
+            
+        } catch (e) {
+            console.error(e, e.stack)
+            throw new Error(`Can't remove from owner! ${relatedPartition}.${ownedField} -> ${this._partition}[${id}]`);
+        }
     }
 
-    async fetchAllIdsBy(field, value) {
-        //TODO
+    async linkToOwner(id, ownerIdField, relatedPartition, ownedField) {
+        const relatedStorage = new this.constructor().usePartition(relatedPartition);
+        try {
+            const ownedDto = await this.read(id);
+            const ownerId = ownedDto[ownerIdField];
+
+            const ownerDto = await relatedStorage.read(ownerId);
+
+            if (!Array.isArray(ownerDto[ownedField])) {
+                throw new Error(`Related filed is not an array of ids`);
+            }
+
+            ownerDto[ownedField].push(id);
+
+            await relatedStorage.update(ownerId, ownerDto);
+            
+        } catch (e) {
+            console.error(e, e.stack)
+            throw new Error(`Can't link to owner! ${relatedPartition}.${ownedField} -> ${this._partition}[${id}]`);
+        }
     }
 
     _getPartitionDirPath() {
