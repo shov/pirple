@@ -25,8 +25,9 @@ class TokensService {
 
     async delete(tokenId) {
         try {
-            await this._storage.delete(tokenId);
             await this._storage.deleteFromOwner(tokenId, 'phone', 'users', 'tokens');
+            await this._storage.delete(tokenId);
+            
         } catch (e) {
             return false;
         }
