@@ -91,7 +91,7 @@ class UsersController {
         }
         const payload = JSON.parse(data.payload);
 
-        if (!Validator.nonEmptyString(payload.phone) && !Validator.nonEmptyString(payload.phone.trim())) {
+        if (!Validator.nonEmptyString(payload.phone) || !Validator.nonEmptyString(payload.phone.trim())) {
             throw new TypeError(`Phone is required`);
         }
 

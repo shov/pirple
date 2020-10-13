@@ -44,6 +44,10 @@ class Validator {
 
         return result
     }
+
+    static undefined(value) {
+        return 'undefined' === typeof value;
+    }
 };
 
 module.exports = Validator;

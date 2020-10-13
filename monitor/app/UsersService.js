@@ -23,6 +23,14 @@ class UsersService {
                 throw e;
             }
 
+            try {
+                //Clean up related checks
+                await this._storage.deleteOwned(phone, 'checks', 'checks');
+            } catch (e) {
+                console.error(`Cannot remove user's checks!`, e, e.stack);
+                throw e;
+            }
+
             //Delete the user
             await this._storage.delete(phone);
             

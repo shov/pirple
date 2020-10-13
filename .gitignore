@@ -4,3 +4,4 @@
 **/ssl/*
 *.zip
 .data
+launcher.sh
