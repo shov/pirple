@@ -9,6 +9,8 @@ routes.setHandler('users', Router.crudHandlerGenerator('users'));
 
 routes.setHandler('tokens', Router.crudHandlerGenerator('tokens'));
 
+routes.setHandler('checks', Router.crudHandlerGenerator('checks'));
+
 routes.setHandler('ping', (data, cb) => {
     cb(200);
 });

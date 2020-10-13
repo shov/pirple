@@ -24,11 +24,11 @@ class UsersController {
             !Validator.nonEmptyString(payload.firstName)
             || !Validator.nonEmptyString(payload.lastName)
             || !Validator.nonEmptyString(payload.phone
-                || payload.phone.trim().length < 10)
+            || payload.phone.trim().length < 10)
             || !Validator.nonEmptyString(payload.password)
             || payload.tosAgreement !== true
         ) {
-            throw new Error(`Wrong payload!`);
+            throw new Error(`Missing required fields!`);
         }
 
         const { firstName, lastName, phone, password, tosAgreement } = payload
@@ -46,7 +46,7 @@ class UsersController {
 
         } catch (e) {
             await this._storage.create(payload.phone, {
-                firstName, lastName, phone, passwordHash, tosAgreement, tokens: [],
+                firstName, lastName, phone, passwordHash, tosAgreement, tokens: [], checks: [],
             });
             return { code: 201, payload: { phone } };
         }
@@ -57,7 +57,7 @@ class UsersController {
      */
     async get(data) {
         if (!Validator.nonEmptyString(data.query.phone) || data.query.phone.trim().length < 10) {
-            throw new TypeError(`Wrong payload!`);
+            throw new TypeError(`Missing required fields!`);
         }
 
         const phone = data.query.phone.trim();
@@ -73,6 +73,7 @@ class UsersController {
                 return { code: 500, error: "Unexpected data" };
             }
             delete dto.tokens;
+            delete dto.checks;
             delete dto.passwordHash;
             return { code: 200, payload: dto };
 
@@ -146,7 +147,7 @@ class UsersController {
      */
     async delete(data) {
         if (!Validator.nonEmptyString(data.query.phone)) {
-            throw new TypeError(`Wrong payload!`);
+            throw new TypeError(`Phone is required`);
         }
 
         const phone = data.query.phone.trim();

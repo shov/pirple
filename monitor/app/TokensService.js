@@ -3,6 +3,7 @@
  */
 
 const FileDataStorage = require('../lib/FileDataStorage');
+const NotFoundError = require('./NotFoundError');
 
 class TokensService {
     constructor() {
@@ -16,6 +17,7 @@ class TokensService {
                 await this._storage.linkToOwner(tokenId, 'phone', 'users', 'tokens');
             } catch (e) {
                 await this._storage.delete(tokenId);
+                throw new NotFoundError();
             }
         } catch (e) {
             return false;
@@ -27,7 +29,7 @@ class TokensService {
         try {
             await this._storage.deleteFromOwner(tokenId, 'phone', 'users', 'tokens');
             await this._storage.delete(tokenId);
-            
+
         } catch (e) {
             return false;
         }

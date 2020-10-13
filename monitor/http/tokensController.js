@@ -23,7 +23,7 @@ class TokensController {
             !Validator.nonEmptyString(payload.phone)
             || !Validator.nonEmptyString(payload.password)
         ) {
-            throw new Error(`Wrong payload!`);
+            throw new Error(`Missing required fields!`);
         }
 
         const {phone, password,} = payload
@@ -59,7 +59,7 @@ class TokensController {
      */
     async get(data) {
         if (!Validator.nonEmptyString(data.query.id) || data.query.id.trim().length < 20) {
-            throw new TypeError(`Wrong payload!`);
+            throw new TypeError(`Missing required fields!`);
         }
 
         try {
@@ -120,7 +120,7 @@ class TokensController {
      */
     async delete(data) {
         if (!Validator.nonEmptyString(data.query.id) || data.query.id.trim().length < 20) {
-            throw new TypeError(`Wrong payload!`);
+            throw new TypeError(`Missing required fields!`);
         }
 
         const wasDeleted = await this._tokenService.delete(data.query.id.trim());
