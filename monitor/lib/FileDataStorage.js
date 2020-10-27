@@ -209,6 +209,29 @@ class FileDataStorage {
         }
     }
 
+    async list () {
+        const partitionDirpath = this._getPartitionDirPath();
+
+        return await new Promise((resolve, reject) => {
+            fs.readdir(partitionDirpath, (err, files) => {
+                if(err) {
+                    reject(err);
+                    return;
+                }
+
+                const records = [];
+                files.forEach(fileName => {
+                    if(!/.*\.json$/.test(fileName)) {
+                        return;
+                    }
+                    records.push(fileName.replace('.json', ''));
+                });
+
+                resolve(records);
+            });
+        });
+    }
+
     _getPartitionDirPath() {
         if (!this._partition) {
             throw new Error(`Set partition first!`);
